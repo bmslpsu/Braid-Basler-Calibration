@@ -811,7 +811,8 @@ def save_optimization_results(output_dir: str,
         for cam_id, intrinsic in optimized_camera_intrinsics.items():
             json_intrinsics[cam_id] = {
                 'camera_matrix': intrinsic.camera_matrix.tolist(),
-                'dist_coeffs': intrinsic.dist_coeffs.tolist()
+                'dist_coeffs': intrinsic.dist_coeffs.tolist(),
+                'image_size': intrinsic.image_size
             }
 
         intrinsics_path = os.path.join(output_dir, "optimized_camera_intrinsics.json")
