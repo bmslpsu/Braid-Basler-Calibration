@@ -36,7 +36,7 @@ def get_cam_coor(R):
 
     return x_axis, y_axis, z_axis
 
-def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extrinsics=None):
+def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extrinsics=None, save = False):
     """
     Analyze the optimization results and print useful statistics,
     and visualize the 3D points and camera positions
@@ -211,28 +211,6 @@ def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extr
         t = ext.translation
         pos = -R.T @ t  # 正确的相机世界坐标
 
-        # 确保相机朝向正交
-        # 通过QR分解或SVD可以获得正交的旋转矩阵
-        # 这里使用简单的方法：先确定z轴，然后构建正交的x和y轴
-
-        # # 获取z轴方向 (相机光轴)
-        # z_axis = R.T[:, 2]
-        # z_axis = z_axis / np.linalg.norm(z_axis)
-        #
-        # # 选择一个临时向量来与z轴叉乘，生成正交的x轴
-        # # 如果z轴与y轴接近平行，则选用x轴作为临时向量，否则选用y轴
-        # temp = np.array([0, 1, 0]) if abs(z_axis[1]) < 0.9 else np.array([1, 0, 0])
-        #
-        # # 生成正交的x轴
-        # # x_axis = np.cross(temp, z_axis)
-        # x_axis = R.T[:, 0]
-        # x_axis = x_axis / np.linalg.norm(x_axis)
-        #
-        # # 生成正交的y轴
-        # # y_axis = np.cross(z_axis, x_axis)
-        # y_axis = R.T[:, 1]
-        # y_axis = y_axis / np.linalg.norm(y_axis)
-
         x_axis, y_axis, z_axis = get_cam_coor(R)
 
         # 构建正交的旋转矩阵
@@ -311,7 +289,8 @@ def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extr
 
     # Show the plot
     plt.tight_layout()
-    plt.savefig('camera_points_3d.png', dpi=300)
+    if save:
+        plt.savefig('camera_points_3d.png', dpi=300)
     plt.show()
 
     print("\nVisualization saved to camera_points_3d.png")
@@ -375,26 +354,6 @@ def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extr
         R = ext.rotation
         t = ext.translation
         pos = -R.T @ t  # 正确的相机世界坐标
-
-        # 确保相机朝向正交
-        # 通过QR分解或SVD可以获得正交的旋转矩阵
-        # 这里使用简单的方法：先确定z轴，然后构建正交的x和y轴
-
-        # # 获取z轴方向 (相机光轴)
-        # z_axis = R.T[:, 2]
-        # z_axis = z_axis / np.linalg.norm(z_axis)
-        #
-        # # 选择一个临时向量来与z轴叉乘，生成正交的x轴
-        # # 如果z轴与y轴接近平行，则选用x轴作为临时向量，否则选用y轴
-        # temp = np.array([0, 1, 0]) if abs(z_axis[1]) < 0.9 else np.array([1, 0, 0])
-        #
-        # # 生成正交的x轴
-        # x_axis = np.cross(temp, z_axis)
-        # x_axis = x_axis / np.linalg.norm(x_axis)
-        #
-        # # 生成正交的y轴
-        # y_axis = np.cross(z_axis, x_axis)
-        # y_axis = y_axis / np.linalg.norm(y_axis)
 
         x_axis, y_axis, z_axis = get_cam_coor(R)
         # 构建正交的旋转矩阵
@@ -467,7 +426,8 @@ def analyze_optimization_results(camera_extrinsics, points_3d=None, initial_extr
 
     # Show the plot
     plt.tight_layout()
-    plt.savefig('cameras_3d.png', dpi=300)
+    if save:
+        plt.savefig('cameras_3d.png', dpi=300)
     plt.show()
 
     print("Camera-only visualization saved to cameras_3d.png")
