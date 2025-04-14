@@ -42,7 +42,8 @@ if __name__ == '__main__':
         optimize_distortion=True,  # Enable distortion optimization
         optimize_k1k2=True,  # Optimize radial distortion k1, k2
         optimize_p1p2=False,  # Optimize tangential distortion p1, p2
-        optimize_k3=False  # Don't optimize k3 (often unstable)
+        optimize_k3=False,  # Don't optimize k3 (often unstable)
+        save_dir=os.path.join(base_dir, "results")
     )
     print('Done bundle adjustment, \nStart analyzing optimization results....')
     analyze_optimization_results(camera_extrinsics, point_3D)

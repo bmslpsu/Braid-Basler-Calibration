@@ -5,6 +5,9 @@ from scipy.sparse import lil_matrix, csr_matrix
 from scipy.spatial.transform import Rotation
 from typing import Dict, List, Tuple, Optional
 import copy
+import os
+import pickle
+import json
 
 # Import necessary classes from the reconstruction module
 try:
@@ -749,6 +752,88 @@ Dict[int, np.ndarray]]:
     return optimized_camera_extrinsics, optimized_camera_intrinsics, optimized_points_3d
 
 
+def save_optimization_results(output_dir: str,
+                              optimized_camera_extrinsics: Dict,
+                              optimized_camera_intrinsics: Dict,
+                              optimized_points_3d: Dict,
+                              save_format: str = 'json'):
+    """
+    保存优化后的相机外参、内参和3D点云数据到指定目录
+
+    Args:
+        output_dir: 输出目录路径
+        optimized_camera_extrinsics: 优化后的相机外参数据字典
+        optimized_camera_intrinsics: 优化后的相机内参数据字典
+        optimized_points_3d: 优化后的3D点云数据字典
+        save_format: 保存格式，可选 'pickle'(默认) 或 'json'
+    """
+    # 如果目录不存在，创建目录
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"创建输出目录: {output_dir}")
+
+    # 根据保存格式选择不同的保存方法
+    if save_format.lower() == 'pickle':
+        # 保存为Pickle格式
+        # 保存相机外参
+        extrinsics_path = os.path.join(output_dir, "optimized_camera_extrinsics.pkl")
+        with open(extrinsics_path, 'wb') as f:
+            pickle.dump(optimized_camera_extrinsics, f)
+
+        # 保存相机内参
+        intrinsics_path = os.path.join(output_dir, "optimized_camera_intrinsics.pkl")
+        with open(intrinsics_path, 'wb') as f:
+            pickle.dump(optimized_camera_intrinsics, f)
+
+        # 保存3D点云
+        points3d_path = os.path.join(output_dir, "optimized_points_3d.pkl")
+        with open(points3d_path, 'wb') as f:
+            pickle.dump(optimized_points_3d, f)
+
+    elif save_format.lower() == 'json':
+        # 保存为JSON格式
+        # 由于相机外参和内参包含numpy数组和特殊对象，需要进行处理
+
+        # 处理相机外参
+        json_extrinsics = {}
+        for cam_id, extrinsic in optimized_camera_extrinsics.items():
+            json_extrinsics[cam_id] = {
+                'rotation': extrinsic.rotation.tolist(),
+                'translation': extrinsic.translation.tolist()
+            }
+
+        extrinsics_path = os.path.join(output_dir, "optimized_camera_extrinsics.json")
+        with open(extrinsics_path, 'w') as f:
+            json.dump(json_extrinsics, f, indent=2)
+
+        # 处理相机内参
+        json_intrinsics = {}
+        for cam_id, intrinsic in optimized_camera_intrinsics.items():
+            json_intrinsics[cam_id] = {
+                'camera_matrix': intrinsic.camera_matrix.tolist(),
+                'dist_coeffs': intrinsic.dist_coeffs.tolist()
+            }
+
+        intrinsics_path = os.path.join(output_dir, "optimized_camera_intrinsics.json")
+        with open(intrinsics_path, 'w') as f:
+            json.dump(json_intrinsics, f, indent=2)
+
+        # 处理3D点云
+        json_points3d = {}
+        for frame, point in optimized_points_3d.items():
+            json_points3d[str(frame)] = point.tolist()
+
+        points3d_path = os.path.join(output_dir, "optimized_points_3d.json")
+        with open(points3d_path, 'w') as f:
+            json.dump(json_points3d, f, indent=2)
+    else:
+        raise ValueError(f"saving format not supported: {save_format}, supported formats: 'pickle' 和 'json'")
+
+    print(f"saved dir: {output_dir}")
+    print(f"  - camera extrinsic: {os.path.basename(extrinsics_path)}")
+    print(f"  - camera intrinsic: {os.path.basename(intrinsics_path)}")
+    print(f"  - 3D point cloud: {os.path.basename(points3d_path)}")
+
 def run_sparse_bundle_adjustment_with_distortion(camera_data: Dict[str, CameraData],
                                                  camera_intrinsics: Dict[str, CameraIntrinsic],
                                                  camera_extrinsics: Dict[str, CameraExtrinsic],
@@ -759,7 +844,8 @@ def run_sparse_bundle_adjustment_with_distortion(camera_data: Dict[str, CameraDa
                                                  optimize_distortion: bool = True,
                                                  optimize_k1k2: bool = True,
                                                  optimize_p1p2: bool = True,
-                                                 optimize_k3: bool = False) -> Tuple[
+                                                 optimize_k3: bool = False,
+                                                 save_dir: str = None) -> Tuple[
     Dict[str, CameraExtrinsic], Dict[str, CameraIntrinsic], Dict[int, np.ndarray]]:
     """
     Run sparse bundle adjustment using the results from your SFM reconstruction code,
@@ -800,12 +886,17 @@ def run_sparse_bundle_adjustment_with_distortion(camera_data: Dict[str, CameraDa
         optimize_k3=optimize_k3
     )
 
+    if save_dir is not None:
+        save_optimization_results(save_dir,
+                                  optimized_camera_extrinsics,
+                                  optimized_camera_intrinsics,
+                                  optimized_points_3d)
+
     return optimized_camera_extrinsics, optimized_camera_intrinsics, optimized_points_3d
 
 
 if __name__ == "__main__":
     # Example of how to use run_sparse_bundle_adjustment_with_distortion
-    import os
 
     # This is just an example - you would replace this with your actual code
     try:
