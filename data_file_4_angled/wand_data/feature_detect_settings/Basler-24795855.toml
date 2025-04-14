@@ -1,0 +1,14 @@
+do_update_background_model = true
+polarity = "DetectAbsDiff"
+alpha = 0.01
+n_sigma = 2.5
+bright_non_gaussian_cutoff = 255
+bright_non_gaussian_replacement = 5
+bg_update_interval = 200
+diff_threshold = 25
+use_cmp = true
+max_num_points = 1
+feature_window_size = 30
+clear_fraction = 0.3
+despeckle_threshold = 10
+valid_region = "Everything"
