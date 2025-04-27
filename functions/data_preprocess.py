@@ -84,12 +84,16 @@ def count_valid_points(camera_data: CameraData) -> int:
     return valid_coords_count
 
 
-def get_unified_frame_range(all_camera_data: Dict[str, CameraData]) -> Tuple[int, int, Set[int]]:
+def get_unified_frame_range(all_camera_data: Dict[str, CameraData], min_cameras: int = 2) -> Tuple[int, int, Set[int]]:
     """
     确定所有相机的统一帧范围
 
-    起始帧: 首次有至少两台相机有有效数据的帧
-    结束帧: 最后一个有至少两台相机有有效数据的帧
+    起始帧: 首次有至少min_cameras台相机有有效数据的帧
+    结束帧: 最后一个有至少min_cameras台相机有有效数据的帧
+
+    参数:
+    all_camera_data: 所有相机数据字典
+    min_cameras: 最少需要多少台相机有有效数据，默认为2
 
     返回: (起始帧, 结束帧, 所有介于两者之间的帧集合)
     """
@@ -101,7 +105,7 @@ def get_unified_frame_range(all_camera_data: Dict[str, CameraData]) -> Tuple[int
     # 帧号排序
     all_frames_sorted = sorted(all_frames)
 
-    # 找到起始帧（首次有至少两台相机有有效数据的帧）
+    # 找到起始帧（首次有至少min_cameras台相机有有效数据的帧）
     start_frame = None
     for frame in all_frames_sorted:
         cameras_with_data = 0
@@ -111,14 +115,14 @@ def get_unified_frame_range(all_camera_data: Dict[str, CameraData]) -> Tuple[int
                 if not (np.isnan(cam_data.x_coords[idx]) or np.isnan(cam_data.y_coords[idx])):
                     cameras_with_data += 1
 
-        if cameras_with_data >= 2:
+        if cameras_with_data >= min_cameras:
             start_frame = frame
             break
 
     if start_frame is None:
         start_frame = all_frames_sorted[0]  # 如果没有找到，则使用第一帧
 
-    # 找到结束帧（最后一个有至少两台相机有有效数据的帧）
+    # 找到结束帧（最后一个有至少min_cameras台相机有有效数据的帧）
     end_frame = None
     for frame in reversed(all_frames_sorted):
         cameras_with_data = 0
@@ -128,7 +132,7 @@ def get_unified_frame_range(all_camera_data: Dict[str, CameraData]) -> Tuple[int
                 if not (np.isnan(cam_data.x_coords[idx]) or np.isnan(cam_data.y_coords[idx])):
                     cameras_with_data += 1
 
-        if cameras_with_data >= 2:
+        if cameras_with_data >= min_cameras:
             end_frame = frame
             break
 
@@ -179,17 +183,23 @@ def standardize_camera_data(camera_data: Dict[str, CameraData], frame_range: Set
     return standardized_data
 
 
-def filter_frames_with_multiple_cameras_and_fill_nan(all_camera_data: Dict[str, CameraData]) -> Dict[str, CameraData]:
+def filter_frames_with_multiple_cameras_and_fill_nan(all_camera_data: Dict[str, CameraData], min_cameras: int = 2) -> \
+Dict[str, CameraData]:
     """
-    找到至少有两台相机有有效数据的帧，对其余帧的坐标设为NaN
-    返回处理后的相机数据字典
+    找到至少有min_cameras台相机有有效数据的帧，对其余帧的坐标设为NaN
+
+    参数:
+    all_camera_data: 所有相机数据字典
+    min_cameras: 最少需要多少台相机有有效数据，默认为2
+
+    返回: 处理后的相机数据字典
     """
     # 收集所有帧
     all_frames = set()
     for cam_data in all_camera_data.values():
         all_frames.update(cam_data.frames)
 
-    # 找到有效帧（至少两台相机有数据的帧）
+    # 找到有效帧（至少min_cameras台相机有数据的帧）
     valid_frames = set()
     for frame in all_frames:
         cameras_with_data = 0
@@ -199,7 +209,7 @@ def filter_frames_with_multiple_cameras_and_fill_nan(all_camera_data: Dict[str, 
                 if not (np.isnan(cam_data.x_coords[idx]) or np.isnan(cam_data.y_coords[idx])):
                     cameras_with_data += 1
 
-        if cameras_with_data >= 2:
+        if cameras_with_data >= min_cameras:
             valid_frames.add(frame)
 
     # 创建新的相机数据字典，对不在valid_frames中的帧坐标设为NaN
@@ -236,7 +246,7 @@ def filter_frames_with_multiple_cameras_and_fill_nan(all_camera_data: Dict[str, 
             is_valid=new_is_valid
         )
 
-    print(f"Identified {len(valid_frames)} frames with at least 2 cameras with valid data")
+    print(f"Identified {len(valid_frames)} frames with at least {min_cameras} cameras with valid data")
     return filtered_camera_data
 
 
@@ -365,7 +375,8 @@ def is_point_in_bounds(point, image_size):
     return 0 <= x < width and 0 <= y < height
 
 
-def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, do_undistort: bool = True):
+def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, min_cameras: int = 2,
+                          do_undistort: bool = True):
     # read data files
     data2d = pd.read_csv(data2d_path)
     cam_info = pd.read_csv(cam_info_path)
@@ -492,8 +503,8 @@ def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, d
         camera_data[cam_id].x_coords = [camera_data[cam_id].x_coords[i] for i in sorted_indices]
         camera_data[cam_id].y_coords = [camera_data[cam_id].y_coords[i] for i in sorted_indices]
 
-    # 获取统一的帧范围
-    start_frame, end_frame, frame_range = get_unified_frame_range(camera_data)
+    # 获取统一的帧范围，使用自定义的最小相机数量
+    start_frame, end_frame, frame_range = get_unified_frame_range(camera_data, min_cameras)
     print(f"Using unified frame range: {start_frame} to {end_frame} ({len(frame_range)} frames)")
 
     # 标准化所有相机数据以包含相同的帧范围
@@ -503,8 +514,8 @@ def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, d
     for cam_id in camera_data:
         stats['standardized'][cam_id] = count_valid_points(camera_data[cam_id])
 
-    # 添加：在处理前先筛选多相机帧
-    camera_data = filter_frames_with_multiple_cameras_and_fill_nan(camera_data)
+    # 添加：在处理前先筛选多相机帧，使用自定义的最小相机数量
+    camera_data = filter_frames_with_multiple_cameras_and_fill_nan(camera_data, min_cameras)
 
     # 添加：更新多相机初步筛选后的统计
     for cam_id in camera_data:
@@ -527,14 +538,14 @@ def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, d
         stats['ransac'][cam_id] = sum(1 for x, y in zip(ransac_x, ransac_y)
                                       if not (np.isnan(x) or np.isnan(y)))
 
-    # 最后，应用多相机数据过滤
-    camera_data = filter_frames_with_multiple_cameras_and_fill_nan(camera_data)
+    # 最后，应用多相机数据过滤，使用自定义的最小相机数量
+    camera_data = filter_frames_with_multiple_cameras_and_fill_nan(camera_data, min_cameras)
     # 更新多相机筛选后的统计数据
     for cam_id in camera_data:
         stats['multicam'][cam_id] = count_valid_points(camera_data[cam_id])
 
-    # 获取统一的帧范围
-    start_frame, end_frame, frame_range = get_unified_frame_range(camera_data)
+    # 获取统一的帧范围，使用自定义的最小相机数量
+    start_frame, end_frame, frame_range = get_unified_frame_range(camera_data, min_cameras)
     print(f"Using unified frame range: {start_frame} to {end_frame} ({len(frame_range)} frames)")
     # 标准化所有相机数据以包含相同的帧范围
     camera_data = standardize_camera_data(camera_data, frame_range)
@@ -550,14 +561,16 @@ def load_and_process_data(data2d_path: str, cam_info_path: str, yaml_dir: str, d
     return camera_data, camn_to_id, stats, camera_intrinsics
 
 
-def data_preprocess(data2d_path: str, cam_info_path: str, yaml_dir: str, do_undistort: bool = True):
+def data_preprocess(data2d_path: str, cam_info_path: str, yaml_dir: str, min_cameras: int = 2,
+                    do_undistort: bool = True):
     """
-    Main data preprocessing function with optional undistortion
+    Main data preprocessing function with optional undistortion and customizable minimum camera count
 
     Parameters:
     data2d_path (str): Path to the 2D data CSV file
     cam_info_path (str): Path to the camera info CSV file
     yaml_dir (str): Directory containing the camera intrinsic calibration YAML files
+    min_cameras (int): 最少需要多少台相机有有效数据，默认为2
     do_undistort (bool): Whether to perform undistortion (default: True)
 
     Returns:
@@ -565,11 +578,11 @@ def data_preprocess(data2d_path: str, cam_info_path: str, yaml_dir: str, do_undi
     """
     # 1. 加载和处理数据
     camera_data, camn_to_id, stats, camera_intrinsics = load_and_process_data(
-        data2d_path, cam_info_path, yaml_dir, do_undistort)
+        data2d_path, cam_info_path, yaml_dir, min_cameras, do_undistort)
 
     # 更新打印格式，包含in_bounds列和undistortion状态
     undistort_status = "enabled" if do_undistort else "disabled"
-    print(f"\nData process summary (Undistortion: {undistort_status}):")
+    print(f"\nData process summary (Undistortion: {undistort_status}, Min cameras: {min_cameras}):")
     print("=" * 155)
     print(f"{'Camera ID':<20} {'OrigPoints':<15} {'UndistortedPts':<15} {'InBoundsPts':<15} {'Standardized':<15} "
           f"{'InitMulticamFilter':<20}{'SpeedFilter':<15} {'RANSAC':<15} {'MulticamFilter':<15} {'ReStandardized':<15}")
@@ -581,7 +594,7 @@ def data_preprocess(data2d_path: str, cam_info_path: str, yaml_dir: str, do_undi
               f"{stats['initial_multicam'].get(cam_id, 0):<20} {stats['velocity'][cam_id]:<15} {stats['ransac'][cam_id]:<15} "
               f"{stats['multicam'].get(cam_id, 0):<15} {stats['re_standardized'].get(cam_id, 0):<15}")
 
-    # 计算有多少帧至少有两台相机有有效数据
+    # 计算有多少帧至少有min_cameras台相机有有效数据
     valid_frames = set()
     all_frames = set()
     for cam_data in camera_data.values():
@@ -595,10 +608,10 @@ def data_preprocess(data2d_path: str, cam_info_path: str, yaml_dir: str, do_undi
                 if not (np.isnan(cam_data.x_coords[idx]) or np.isnan(cam_data.y_coords[idx])):
                     cameras_with_data += 1
 
-        if cameras_with_data >= 2:
+        if cameras_with_data >= min_cameras:
             valid_frames.add(frame)
 
-    print(f"Finally, there are {len(valid_frames)} frames in at least 2 cameras")
+    print(f"Finally, there are {len(valid_frames)} frames with at least {min_cameras} cameras")
 
     # Only print out-of-bounds stats if undistortion was performed
     if do_undistort:
@@ -624,13 +637,16 @@ if __name__ == "__main__":
     cam_info_path = os.path.join(base_dir, "20241017_164418/cam_info.csv")
     yaml_dir = os.path.join(base_dir, "intrinsic_calibrations")
 
+    # 自定义最小相机数量(默认为2)
+    min_cameras = 2
+
     # Example with undistortion enabled (default)
     processed_data_with_undistort, camn_to_id, camera_intrinsics = data_preprocess(
-        data2d_path, cam_info_path, yaml_dir, do_undistort=True)
+        data2d_path, cam_info_path, yaml_dir, min_cameras=min_cameras, do_undistort=True)
 
     print("\n" + "=" * 80)
     print("Running without undistortion:")
 
     # Example with undistortion disabled
     processed_data_no_undistort, camn_to_id, camera_intrinsics = data_preprocess(
-        data2d_path, cam_info_path, yaml_dir, do_undistort=False)
+        data2d_path, cam_info_path, yaml_dir, min_cameras=min_cameras, do_undistort=False)

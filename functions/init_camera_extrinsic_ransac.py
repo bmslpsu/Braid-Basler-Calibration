@@ -1350,6 +1350,7 @@ def incremental_sfm_calibration_sync(camera_data: Dict[str, CameraData],
     return camera_extrinsics
 
 def data_preprocess_with_incremental_sfm_sync(data2d_path: str, cam_info_path: str, yaml_dir: str,
+                                              min_cameras: int,
                                               min_shared_frames: int = 50,
                                               verbose: bool = True) -> Tuple[
     Dict[str, CameraData], Dict, Dict[str, CameraIntrinsic], Dict[str, CameraExtrinsic]]:
@@ -1368,7 +1369,7 @@ def data_preprocess_with_incremental_sfm_sync(data2d_path: str, cam_info_path: s
     """
     # Call original data_preprocess function to get basic processed data
     camera_data, camn_to_id, camera_intrinsics = data_preprocess(data2d_path, cam_info_path, yaml_dir,
-                                                                 do_undistort=False)
+                                                                 min_cameras=min_cameras, do_undistort=False)
 
     if verbose:
         print("\nOriginal data statistics:")
@@ -1395,7 +1396,7 @@ def data_preprocess_with_incremental_sfm_sync(data2d_path: str, cam_info_path: s
     return camera_data, camn_to_id, camera_intrinsics, camera_extrinsics
 
 def data_preprocess_with_manual_extrinsics(data2d_path: str, cam_info_path: str, yaml_dir: str,
-                                           verbose: bool = True) -> Tuple[
+                                           min_cameras: int, verbose: bool = True) -> Tuple[
     Dict[str, CameraData], Dict, Dict[str, CameraIntrinsic], Dict[str, CameraExtrinsic]]:
     """
     Preprocess data and use manual GUI for camera extrinsic calibration, then proceed with SFM
@@ -1411,7 +1412,7 @@ def data_preprocess_with_manual_extrinsics(data2d_path: str, cam_info_path: str,
     """
     # Call original data_preprocess function to get basic processed data
     camera_data, camn_to_id, camera_intrinsics = data_preprocess(data2d_path, cam_info_path, yaml_dir,
-                                                                 do_undistort=False)
+                                                                 min_cameras=min_cameras, do_undistort=False)
 
     if verbose:
         print("\nOriginal data statistics:")
@@ -1434,7 +1435,8 @@ def data_preprocess_with_manual_extrinsics(data2d_path: str, cam_info_path: str,
 def data_preprocess_with_choices(data2d_path: str, cam_info_path: str, yaml_dir: str,
                                               min_shared_frames: int = 50,
                                               verbose: bool = True,
-                                              manual_init_extrinsic: bool = False) -> Tuple[
+                                              manual_init_extrinsic: bool = False,
+                                              min_cameras: int = 2) -> Tuple[
     Dict[str, CameraData], Dict, Dict[str, CameraIntrinsic], Dict[str, CameraExtrinsic]]:
     if manual_init_extrinsic:
         print("manual init extrinsic")
@@ -1442,6 +1444,7 @@ def data_preprocess_with_choices(data2d_path: str, cam_info_path: str, yaml_dir:
             data2d_path,
             cam_info_path,
             yaml_dir,
+            min_cameras=min_cameras,
             verbose=verbose
         )
         return camera_data, camn_to_id, camera_intrinsics, camera_extrinsics
@@ -1452,6 +1455,7 @@ def data_preprocess_with_choices(data2d_path: str, cam_info_path: str, yaml_dir:
             cam_info_path,
             yaml_dir,
             min_shared_frames=min_shared_frames,
+            min_cameras=min_cameras,
             verbose=verbose
         )
         return camera_data, camn_to_id, camera_intrinsics, camera_extrinsics
@@ -1477,6 +1481,7 @@ if __name__ == "__main__":
         cam_info_path,
         yaml_dir,
         min_shared_frames=50,
+        min_cameras=2,
         verbose=True
     )
 

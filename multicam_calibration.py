@@ -19,13 +19,15 @@ if __name__ == '__main__':
     yaml_dir = os.path.join(base_dir, "intrinsic_calibrations")
     print('Start data processing.....')
 
+    min_cameras = 2
     filtered_data, camn_to_id, camera_intrinsics, camera_extrinsics = data_preprocess_with_choices(
         data2d_path,
         cam_info_path,
         yaml_dir,
         min_shared_frames=50,
         verbose=True,
-        manual_init_extrinsic=False
+        manual_init_extrinsic=False,
+        min_cameras=min_cameras
     )
     print(camera_intrinsics)
     print(camera_extrinsics)
