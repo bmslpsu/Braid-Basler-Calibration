@@ -39,13 +39,13 @@ def get_cam_coor(R):
     return x_axis, y_axis, z_axis
 
 
-def load_optimization_results(base_dir, format='json'):
+def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name, points_file_name, format='json'):
     """从指定目录加载优化结果"""
 
     # 检查文件名并构建完整路径
-    extrinsics_filename = os.path.join(base_dir, f"optimized_camera_extrinsics.{format}")
-    intrinsics_filename = os.path.join(base_dir, f"optimized_camera_intrinsics.{format}")
-    points3d_filename = os.path.join(base_dir, f"optimized_points_3d.{format}")
+    extrinsics_filename = os.path.join(base_dir, f"{extrinsic_file_name}.{format}")
+    intrinsics_filename = os.path.join(base_dir, f"{intrinsic_file_name}.{format}")
+    points3d_filename = os.path.join(base_dir, f"{points_file_name}.{format}")
 
     # 检查文件是否存在
     if not os.path.exists(extrinsics_filename):
@@ -930,7 +930,8 @@ class VisualizationApp:
         return transformed_extrinsics, transformed_intrinsics, self.points_3d
 
 
-def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, length_z: float = 1.0):
+def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, length_z: float = 1.0,
+         extrinsic_file_name: str = None, intrinsic_file_name: str = None, points_file_name: str = None):
     """主函数"""
 
     root = tk.Tk()
@@ -940,6 +941,9 @@ def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, len
     if data_dir and os.path.exists(data_dir):
         try:
             app.camera_extrinsics, app.camera_intrinsics, app.points_3d = load_optimization_results(data_dir,
+                                                                                                    extrinsic_file_name=extrinsic_file_name,
+                                                                                                    intrinsic_file_name=intrinsic_file_name,
+                                                                                                    points_file_name=points_file_name,
                                                                                                     format='json')
 
             # 保存原始数据副本，用于后续的变换
@@ -976,8 +980,13 @@ def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, len
 if __name__ == "__main__":
     # 修改函数调用以返回变换后的数据
     data_dir = r'./data_file_4_angled/results'
+    extrinsic_file_name = "optimized_camera_extrinsics"
+    intrinsic_file_name = "optimized_camera_intrinsics"
+    points_file_name = "optimized_points_3d"
+
     extrinsics, intrinsics, points3d = main(data_dir, 0.9144, 0.9144,
-                                            0.3048) # m
+                                            0.3048, extrinsic_file_name=extrinsic_file_name,
+                                            intrinsic_file_name=intrinsic_file_name, points_file_name=points_file_name) # m
 
     if extrinsics is not None:
         print(f"Successfully retrieved transformed data:")
