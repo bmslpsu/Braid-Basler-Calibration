@@ -1,0 +1,3 @@
+mainbrain_timestamp,cam_id,host_timestamp,message
+1746558008.1459126,mainbrain,1746558008.1459126,"MainBrain running at 100 fps, (flydra_version 2.0.0, git_revision c545ac2a69126891c020189bfe61d82e8a735650, time_tzname0 America/New_York)"
+1746558008.1459126,mainbrain,1746558008.1459126,"{""tracking_params"":{""motion_noise_scale"":2.0,""initial_position_std_meters"":0.1,""initial_vel_std_meters_per_sec"":1.0,""ekf_observation_covariance_pixels"":30.0,""accept_observation_min_likelihood"":1e-14,""max_position_std_meters"":0.05,""hypothesis_test_params"":{""minimum_number_of_cameras"":2,""hypothesis_test_max_acceptable_error"":5.0,""minimum_pixel_abs_zscore"":0.0},""num_observations_to_visibility"":3},""git_revision"":""c545ac2a69126891c020189bfe61d82e8a735650""}"

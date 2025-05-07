@@ -39,13 +39,13 @@ def get_cam_coor(R):
     return x_axis, y_axis, z_axis
 
 
-def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name, points_file_name, format='json'):
+def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name, points_file_name, format_type='json'):
     """从指定目录加载优化结果"""
 
     # 检查文件名并构建完整路径
-    extrinsics_filename = os.path.join(base_dir, f"{extrinsic_file_name}.{format}")
-    intrinsics_filename = os.path.join(base_dir, f"{intrinsic_file_name}.{format}")
-    points3d_filename = os.path.join(base_dir, f"{points_file_name}.{format}")
+    extrinsics_filename = os.path.join(base_dir, f"{extrinsic_file_name}.{format_type}")
+    intrinsics_filename = os.path.join(base_dir, f"{intrinsic_file_name}.{format_type}")
+    points3d_filename = os.path.join(base_dir, f"{points_file_name}.{format_type}")
 
     # 检查文件是否存在
     if not os.path.exists(extrinsics_filename):
@@ -56,7 +56,7 @@ def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name
         raise FileNotFoundError(f"no 3D points: {points3d_filename}")
 
     # 根据格式加载文件
-    if format.lower() == 'json':
+    if format_type.lower() == 'json':
         # JSON格式加载
         with open(extrinsics_filename, 'r') as f:
             json_extrinsics = json.load(f)
@@ -87,7 +87,7 @@ def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name
             image_size = tuple(intr_data['image_size'])
             camera_intrinsics[cam_id] = CameraIntrinsicSimple(camera_matrix, dist_coeffs, image_size)
 
-    elif format.lower() == 'pickle':
+    elif format_type.lower() == 'pickle':
         # Pickle格式加载
         with open(extrinsics_filename, 'rb') as f:
             camera_extrinsics = pickle.load(f)
@@ -99,7 +99,7 @@ def load_optimization_results(base_dir, extrinsic_file_name, intrinsic_file_name
             points_3d = pickle.load(f)
 
     else:
-        raise ValueError(f"format not support: {format}")
+        raise ValueError(f"format not support: {format_type}")
 
     print(f"successfully loaded data:")
     print(f"  - camera extrinsic: {len(camera_extrinsics)} cameras")
@@ -494,7 +494,7 @@ class VisualizationApp:
         try:
             # 尝试加载JSON格式
             self.camera_extrinsics, self.camera_intrinsics, self.points_3d = load_optimization_results(result_dir,
-                                                                                                       format='json')
+                                                                                                       format_type='json')
 
             # 保存原始数据副本，用于后续的变换
             self.original_extrinsics = {cam_id: CameraExtrinsicSimple(ext.rotation.copy(), ext.translation.copy())
@@ -944,7 +944,7 @@ def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, len
                                                                                                     extrinsic_file_name=extrinsic_file_name,
                                                                                                     intrinsic_file_name=intrinsic_file_name,
                                                                                                     points_file_name=points_file_name,
-                                                                                                    format='json')
+                                                                                                    format_type='json')
 
             # 保存原始数据副本，用于后续的变换
             app.original_extrinsics = {cam_id: CameraExtrinsicSimple(ext.rotation.copy(), ext.translation.copy())
@@ -979,10 +979,10 @@ def main(data_dir: str = None, length_x: float = 1.0, length_y: float = 1.0, len
 
 if __name__ == "__main__":
     # 修改函数调用以返回变换后的数据
-    data_dir = r'./data_file_4_angled/results'
-    extrinsic_file_name = "optimized_camera_extrinsics"
-    intrinsic_file_name = "optimized_camera_intrinsics"
-    points_file_name = "optimized_points_3d"
+    data_dir = r'./data_file_4_with_ref/results'
+    extrinsic_file_name = "scaled_optimized_camera_extrinsics"
+    intrinsic_file_name = "scaled_optimized_camera_intrinsics"
+    points_file_name = "scaled_optimized_points_3d"
 
     extrinsics, intrinsics, points3d = main(data_dir, 0.9144, 0.9144,
                                             0.3048, extrinsic_file_name=extrinsic_file_name,

@@ -3,11 +3,11 @@ import os
 import gzip
 import shutil
 
-file_path = "./data_file_4_angled/20250408_215614.braidz"
-extract_path = "./data_file_4_angled/wand_data"
-
-file_path = f'J:/barid_cal/20250416_175127.braidz'
-extract_path = f'J:/barid_cal/20250416_175127'
+file_path = "./data_file_4_with_ref/reference_points/20250506_150008.braidz"
+extract_path = "./data_file_4_with_ref/reference_points/ref_data"
+#
+# file_path = f'J:/barid_cal/20250416_175127.braidz'
+# extract_path = f'J:/barid_cal/20250416_175127'
 
 # 创建解压目录（如果不存在）
 os.makedirs(extract_path, exist_ok=True)

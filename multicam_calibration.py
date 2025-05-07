@@ -8,7 +8,7 @@ from functions.view_3D_points import visualize_points
 from functions.init_camera_extrinsic_ransac import data_preprocess_with_choices
 import math
 if __name__ == '__main__':
-    base_dir = "./data_file_4_angled"
+    base_dir = "./data_file_4_with_ref/"
     data2d_path = os.path.join(base_dir, "wand_data/data2d_distorted.csv")
     cam_info_path = os.path.join(base_dir, "wand_data/cam_info.csv")
 

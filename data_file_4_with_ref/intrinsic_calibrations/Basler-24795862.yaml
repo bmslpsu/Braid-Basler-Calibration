@@ -1,0 +1,57 @@
+# Saved by strand-cam at 2025-02-10 11:18:11.148709810 -05:00
+# Mean reprojection distance: 1.07
+image_width: 1200
+image_height: 1000
+camera_name: Basler-24795862
+camera_matrix:
+  rows: 3
+  cols: 3
+  data:
+  - 4680.489793052224
+  - 0.0
+  - 716.0044719197829
+  - 0.0
+  - 4682.270192374205
+  - 391.37140325273646
+  - 0.0
+  - 0.0
+  - 1.0
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data:
+  - -0.22775171836671723
+  - 3.231548458730066
+  - -0.0054543381616507635
+  - 0.0010310767734429546
+  - 0.0
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data:
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+projection_matrix:
+  rows: 3
+  cols: 4
+  data:
+  - 4680.489793052224
+  - 0.0
+  - 716.0044719197829
+  - 0.0
+  - 0.0
+  - 4682.270192374205
+  - 391.37140325273646
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.0
