@@ -2,6 +2,11 @@
 May extend this function to replace easywand for Photron cameras in the future.
 
 ## Data collection:
+### Important: Avoid reflection of LED; this will cause points to drift and result in false calibration.  
+If the point is close to the acrylic boards, cameras may detect the reflected points as the 'real points'. 
+This will cause a mismatch of the paired 2D points for reconstruction. If the LED wand is at least 2 inches away from the acrylic boards. 
+The wrongly detected point may be filtered out as an outlier.
+
 ### wand points:
 1. Run braid without any calibration xml files and set detecting **<u>1</u>** point max for all the cameras.
 2. Open terminal, `braid run /path/to/toml`.
