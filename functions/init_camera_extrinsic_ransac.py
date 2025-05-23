@@ -415,7 +415,7 @@ def estimate_essential_matrix(observations1: List[np.ndarray],
                               observations2: List[np.ndarray],
                               camera_intrinsic1: CameraIntrinsic,
                               camera_intrinsic2: CameraIntrinsic,
-                              method: int = cv2.RANSAC,
+                              method: int = cv2.LMEDS,
                               prob: float = 0.999) -> Tuple[np.ndarray, np.ndarray]:
     """
     Estimate essential matrix using normalized DLT and multiple thresholds
@@ -425,7 +425,7 @@ def estimate_essential_matrix(observations1: List[np.ndarray],
         observations2: List of 2D points from camera 2
         camera_intrinsic1: Camera 1 intrinsic parameters
         camera_intrinsic2: Camera 2 intrinsic parameters
-        method: Method for estimating essential matrix (RANSAC, etc.)
+        method: Method for estimating essential matrix (LMEDS, etc.)
         prob: Confidence probability
 
     Returns:
@@ -457,33 +457,14 @@ def estimate_essential_matrix(observations1: List[np.ndarray],
     best_mask = None
     best_inlier_ratio = 0
 
-    # Multiple thresholds to try
-    thresholds = [0.5, 1.0, 2.0, 3.0]
-
-    for thresh in thresholds:
-        E, mask = cv2.findEssentialMat(
-            points1_normalized,
-            points2_normalized,
-            focal=1.0,
-            pp=(0, 0),
-            method=method,
-            prob=prob,
-            threshold=thresh
-        )
-
-        # Ensure E and mask are valid
-        if E is None or mask is None:
-            continue
-
-        # Calculate inlier ratio
-        inlier_count = np.sum(mask)
-        inlier_ratio = inlier_count / len(mask) if len(mask) > 0 else 0
-
-        # If found better result
-        if inlier_ratio > best_inlier_ratio:
-            best_inlier_ratio = inlier_ratio
-            best_E = E
-            best_mask = mask
+    best_E, best_mask = cv2.findEssentialMat(
+        points1_normalized,
+        points2_normalized,
+        focal=1.0,
+        pp=(0, 0),
+        method=cv2.LMEDS,
+        prob=prob
+    )
 
     # If all attempts failed, use default threshold
     if best_E is None:
@@ -493,8 +474,7 @@ def estimate_essential_matrix(observations1: List[np.ndarray],
             focal=1.0,
             pp=(0, 0),
             method=method,
-            prob=prob,
-            threshold=1.0  # Default threshold
+            prob=prob
         )
 
     # Validate essential matrix against algebraic constraints
